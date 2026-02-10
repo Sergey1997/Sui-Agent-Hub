@@ -89,12 +89,24 @@ export interface Scan {
 
 // ─── Queries ─────────────────────────────────────────────
 
-export async function getOpportunities(limit = 20) {
-  const { data, error } = await supabase
+export async function getOpportunities(
+  limit = 20,
+  filters?: { status?: string | null; type?: string | null }
+) {
+  let query = supabase
     .from("opportunities")
     .select("*")
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  if (filters?.status) {
+    query = query.eq("status", filters.status);
+  }
+  if (filters?.type) {
+    query = query.eq("type", filters.type);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
   return data as Opportunity[];

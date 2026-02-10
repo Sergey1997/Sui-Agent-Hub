@@ -9,8 +9,6 @@ import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import AgentStatus from "@/components/AgentStatus";
-import WalletCard from "@/components/WalletCard";
-import Features from "@/components/Features";
 import OpportunityCard from "@/components/OpportunityCard";
 import AgentLogFeed from "@/components/AgentLogFeed";
 import ScanHistory from "@/components/ScanHistory";
@@ -145,20 +143,17 @@ export default function Dashboard() {
       <Header />
 
       <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 pt-28 pb-24">
-        <Hero />
-
-        {/* Status + Wallet */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <AgentStatus
-            opportunityCount={opportunities.length}
-            executedCount={executed}
-            pendingCount={pending}
-          />
-          <WalletCard />
+        {/* Hero + Status sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 mb-12">
+          <Hero />
+          <div className="flex flex-col gap-6 pt-8">
+            <AgentStatus
+              opportunityCount={opportunities.length}
+              executedCount={executed}
+              pendingCount={pending}
+            />
+          </div>
         </div>
-
-        {/* Features */}
-        <Features />
 
         {/* Opportunities + Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10" id="opportunities">

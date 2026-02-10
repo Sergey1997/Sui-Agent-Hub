@@ -29,7 +29,7 @@ export default function DocsPage() {
           className="prose prose-invert prose-lg max-w-none"
         >
           <h1 className="text-4xl sm:text-5xl font-light text-white mb-4">
-            Sui Opportunity Hunter
+            Sui Opportunities Hunter
           </h1>
           <p className="text-xl text-gray-400 mb-12">
             Data service for AI agents — enhanced DeFi opportunities on demand
@@ -42,7 +42,7 @@ export default function DocsPage() {
             </h2>
             <div className="bg-white/[0.03] border-2 border-white/[0.1] rounded-xl p-8 mb-6">
               <p className="text-xl text-gray-200 leading-relaxed mb-6">
-                <strong className="text-white">Sui Opportunity Hunter is a data service for AI agents.</strong>{" "}
+                <strong className="text-white">Sui Opportunities Hunter is a data service for AI agents.</strong>{" "}
                 When your agent needs opportunities, market data, or DeFi intelligence, we provide
                 enhanced, validated, and actionable data on demand.
               </p>

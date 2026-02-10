@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Sui Opportunity Hunter",
+  title: "Sui Opportunities Hunter",
   description:
-    "Autonomous AI agent that hunts DeFi opportunities on Sui blockchain — powered by OpenClaw",
+    "Data service for AI agents — enhanced DeFi opportunities on demand",
 };
 
 export default function RootLayout({

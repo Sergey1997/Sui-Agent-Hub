@@ -31,6 +31,17 @@ export interface ArbitrageOpportunity {
   agent_notes: string;
 }
 
+export interface YieldPool {
+  project: string;
+  symbol: string;
+  chain: string;
+  tvlUsd: number;
+  apy: number;
+  apyBase: number;
+  apyReward: number;
+  pool: string;
+}
+
 // ─── Known Sui Coin Types ────────────────────────────────
 
 const COINS = {
@@ -238,9 +249,37 @@ async function fetchAftermathPrices(): Promise<DexPrice[]> {
 /**
  * Fetch pool yield data from DeFiLlama.
  * Free API, no key needed. Returns TVL + APY for Sui DEX pools.
- * We extract implied prices from pools that have base/quote info.
  */
 async function fetchDeFiLlamaPools(): Promise<DexPrice[]> {
+  try {
+    const pools = await fetchDeFiLlamaYieldPools();
+
+    const prices: DexPrice[] = [];
+    for (const pool of pools) {
+      const pair = pool.symbol.replace("-", "/");
+      if (pair.includes("/")) {
+        prices.push({
+          dex: `${pool.project} (DeFiLlama)`,
+          pair,
+          price: 0, // liquidity signal only
+          liquidity: pool.tvlUsd,
+          timestamp: Date.now(),
+        });
+      }
+    }
+
+    return prices;
+  } catch (e) {
+    console.error("DeFiLlama error:", e);
+    return [];
+  }
+}
+
+/**
+ * Fetch Sui yield pools from DeFiLlama yields API.
+ * Returns pools with APY, TVL, and project info.
+ */
+async function fetchDeFiLlamaYieldPools(): Promise<YieldPool[]> {
   try {
     const res = await fetch(
       "https://yields.llama.fi/pools",
@@ -252,42 +291,69 @@ async function fetchDeFiLlamaPools(): Promise<DexPrice[]> {
     const pools = json?.data;
     if (!Array.isArray(pools)) return [];
 
-    const prices: DexPrice[] = [];
     // Filter to Sui chain pools with meaningful TVL
-    const suiPools = pools.filter(
-      (p: Record<string, unknown>) =>
-        p.chain === "Sui" &&
-        typeof p.tvlUsd === "number" &&
-        (p.tvlUsd as number) > 10_000 &&
-        typeof p.symbol === "string"
-    );
-
-    for (const pool of suiPools.slice(0, 20)) {
-      const symbol = pool.symbol as string;      // e.g. "SUI-USDC"
-      const project = pool.project as string;      // e.g. "cetus", "turbos"
-      const tvl = pool.tvlUsd as number;
-
-      // Normalize symbol to pair format
-      const pair = symbol.replace("-", "/");
-
-      // We don't have a direct price, but we can use this as liquidity signal
-      // and the pool's existence confirms the pair is tradeable
-      if (pair.includes("/")) {
-        prices.push({
-          dex: `${project} (DeFiLlama)`,
-          pair,
-          price: 0, // no price from yields endpoint — used for liquidity signal
-          liquidity: tvl,
-          timestamp: Date.now(),
-        });
-      }
-    }
-
-    return prices;
+    return pools
+      .filter(
+        (p: Record<string, unknown>) =>
+          p.chain === "Sui" &&
+          typeof p.tvlUsd === "number" &&
+          (p.tvlUsd as number) > 5_000 &&
+          typeof p.symbol === "string"
+      )
+      .slice(0, 50)
+      .map((p: Record<string, unknown>) => ({
+        project: String(p.project ?? "unknown"),
+        symbol: String(p.symbol ?? ""),
+        chain: "Sui",
+        tvlUsd: Number(p.tvlUsd ?? 0),
+        apy: Number(p.apy ?? 0),
+        apyBase: Number(p.apyBase ?? 0),
+        apyReward: Number(p.apyReward ?? 0),
+        pool: String(p.pool ?? ""),
+      }));
   } catch (e) {
-    console.error("DeFiLlama error:", e);
+    console.error("DeFiLlama yields error:", e);
     return [];
   }
+}
+
+/**
+ * Turn DeFiLlama yield pool data into yield opportunities.
+ * Surfaces pools with attractive APY as actionable opportunities.
+ */
+function findYieldOpportunities(
+  yieldPools: YieldPool[],
+  minApy = 3.0
+): ArbitrageOpportunity[] {
+  return yieldPools
+    .filter((p) => p.apy >= minApy && p.tvlUsd > 10_000)
+    .sort((a, b) => b.apy - a.apy)
+    .slice(0, 15)
+    .map((pool) => {
+      const pair = pool.symbol.replace("-", "/");
+      const estimatedUsd = (pool.apy / 100) * 1000; // annual yield on $1k
+
+      return {
+        title: `${pair} Yield on ${pool.project} — ${pool.apy.toFixed(1)}% APY`,
+        type: "yield" as const,
+        source_dex: pool.project,
+        target_dex: "",
+        token_pair: pair,
+        buy_price: pool.apyBase,
+        sell_price: pool.apy,
+        profit_percent: Math.round(pool.apy * 100) / 100,
+        risk_level: getYieldRisk(pool.tvlUsd, pool.apy),
+        estimated_profit_usd: Math.round(estimatedUsd * 100) / 100,
+        agent_notes: `${pool.project} pool on Sui. APY: ${pool.apy.toFixed(2)}% (base: ${pool.apyBase.toFixed(2)}%, reward: ${pool.apyReward.toFixed(2)}%). TVL: $${(pool.tvlUsd / 1000).toFixed(0)}k.`,
+      };
+    });
+}
+
+function getYieldRisk(tvl: number, apy: number): "low" | "medium" | "high" {
+  // Very high APY or low TVL = higher risk
+  if (apy > 100 || tvl < 20_000) return "high";
+  if (apy > 30 || tvl < 100_000) return "medium";
+  return "low";
 }
 
 /**
@@ -467,35 +533,47 @@ export async function runScan(): Promise<ScanResult> {
   const sources: string[] = [];
 
   // Fetch from all sources in parallel
-  const results = await Promise.all([
-    fetchCetusPrices().then((p) => {
-      if (p.length > 0) sources.push("Cetus API");
-      return p;
-    }),
-    fetchTurbosPrices().then((p) => {
-      if (p.length > 0) sources.push("Turbos API");
-      return p;
-    }),
-    fetchAftermathPrices().then((p) => {
-      if (p.length > 0) sources.push("Aftermath API");
-      return p;
-    }),
-    fetchOnChainData().then((p) => {
-      if (p.length > 0) sources.push("Sui SDK (on-chain)");
-      return p;
-    }),
-    fetchDeFiLlamaPools().then((p) => {
-      if (p.length > 0) sources.push("DeFiLlama");
-      return p;
-    }),
-    fetchBirdeyePrices().then((p) => {
-      if (p.length > 0) sources.push("Birdeye");
-      return p;
+  const [priceResults, yieldPools] = await Promise.all([
+    Promise.all([
+      fetchCetusPrices().then((p) => {
+        if (p.length > 0) sources.push("Cetus API");
+        return p;
+      }),
+      fetchTurbosPrices().then((p) => {
+        if (p.length > 0) sources.push("Turbos API");
+        return p;
+      }),
+      fetchAftermathPrices().then((p) => {
+        if (p.length > 0) sources.push("Aftermath API");
+        return p;
+      }),
+      fetchOnChainData().then((p) => {
+        if (p.length > 0) sources.push("Sui SDK (on-chain)");
+        return p;
+      }),
+      fetchDeFiLlamaPools().then((p) => {
+        if (p.length > 0) sources.push("DeFiLlama");
+        return p;
+      }),
+      fetchBirdeyePrices().then((p) => {
+        if (p.length > 0) sources.push("Birdeye");
+        return p;
+      }),
+    ]),
+    fetchDeFiLlamaYieldPools().then((pools) => {
+      if (pools.length > 0 && !sources.includes("DeFiLlama")) {
+        sources.push("DeFiLlama Yields");
+      }
+      return pools;
     }),
   ]);
 
-  const allPrices = results.flat();
-  const opportunities = findArbitrageOpportunities(allPrices);
+  const allPrices = priceResults.flat();
+  const arbitrageOpps = findArbitrageOpportunities(allPrices);
+  const yieldOpps = findYieldOpportunities(yieldPools);
+
+  // Combine all opportunities: arbitrage first, then yield
+  const opportunities = [...arbitrageOpps, ...yieldOpps];
 
   return {
     prices: allPrices,

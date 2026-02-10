@@ -6,14 +6,23 @@ import {
   updateOpportunityVerdict,
   supabase,
 } from "@/lib/supabase";
-import { generateOpportunityAnalysis } from "@/lib/ai";
+import { generateVerdict } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/opportunities — fetch recent opportunities
-export async function GET() {
+// Query params:
+//   ?status=approved   — only approved opportunities
+//   ?status=discovered  — only discovered, etc.
+//   ?type=yield         — only yield opportunities
+//   ?limit=50           — max results (default 30)
+export async function GET(req: NextRequest) {
   try {
-    const opportunities = await getOpportunities(30);
+    const status = req.nextUrl.searchParams.get("status");
+    const type = req.nextUrl.searchParams.get("type");
+    const limit = parseInt(req.nextUrl.searchParams.get("limit") || "30", 10);
+
+    const opportunities = await getOpportunities(limit, { status, type });
     return NextResponse.json({ opportunities });
   } catch (error) {
     return NextResponse.json(
@@ -41,8 +50,8 @@ export async function POST(req: NextRequest) {
       agent_notes: body.agent_notes || null,
     });
 
-    // Fire-and-forget: generate AI analysis and attach it
-    generateOpportunityAnalysis({
+    // Fire-and-forget: generate AI verdict and attach it
+    generateVerdict({
       title: opportunity.title,
       type: opportunity.type,
       token_pair: opportunity.token_pair,
@@ -55,15 +64,15 @@ export async function POST(req: NextRequest) {
       estimated_profit_usd: opportunity.estimated_profit_usd,
       agent_notes: opportunity.agent_notes,
     })
-      .then(async (analysis) => {
+      .then(async (verdict) => {
         await updateOpportunityVerdict(opportunity.id, {
-          ai_verdict: analysis,
-          verdict_confidence: 0,
-          is_real_opportunity: null as unknown as boolean,
-          sources_checked: [],
+          ai_verdict: verdict.verdict,
+          verdict_confidence: verdict.confidence,
+          is_real_opportunity: verdict.isReal,
+          sources_checked: verdict.reasoning ? [verdict.reasoning] : [],
         });
       })
-      .catch((e) => console.error("AI analysis failed:", e));
+      .catch((e) => console.error("AI verdict failed:", e));
 
     return NextResponse.json({ opportunity }, { status: 201 });
   } catch (error) {

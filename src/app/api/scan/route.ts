@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runScan } from "@/lib/scanner";
-import { createOpportunity, createAgentLog, createScan, supabase } from "@/lib/supabase";
-import { generateScanSummary } from "@/lib/ai";
+import { createOpportunity, createAgentLog, createScan, updateOpportunityVerdict, supabase } from "@/lib/supabase";
+import { generateScanSummary, generateVerdict } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 
@@ -35,12 +35,38 @@ async function storeScanResults(
     console.error("[scan] createScan failed:", e);
   }
 
-  // 3. Store opportunities
+  // 3. Store opportunities and generate AI verdicts
   const stored: string[] = [];
   for (const opp of result.opportunities.slice(0, 5)) {
     try {
-      await createOpportunity(opp);
+      const opportunity = await createOpportunity(opp);
       stored.push(opp.title);
+
+      // Generate AI verdict in background (fire-and-forget)
+      generateVerdict({
+        title: opp.title,
+        type: opp.type,
+        token_pair: opp.token_pair,
+        source_dex: opp.source_dex,
+        target_dex: opp.target_dex || "",
+        buy_price: opp.buy_price,
+        sell_price: opp.sell_price,
+        profit_percent: opp.profit_percent,
+        risk_level: opp.risk_level,
+        estimated_profit_usd: opp.estimated_profit_usd,
+        agent_notes: opp.agent_notes,
+      })
+        .then(async (verdict) => {
+          await updateOpportunityVerdict(opportunity.id, {
+            ai_verdict: verdict.verdict,
+            verdict_confidence: verdict.confidence,
+            is_real_opportunity: verdict.isReal,
+            sources_checked: verdict.reasoning ? [verdict.reasoning] : [],
+          });
+        })
+        .catch((e) => {
+          console.error(`[scan] AI verdict failed for ${opp.title}:`, e);
+        });
     } catch (e) {
       console.error("[scan] createOpportunity failed:", e);
     }

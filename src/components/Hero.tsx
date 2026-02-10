@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function Hero() {
   return (
-    <section className="mb-16 pt-8">
+    <section className="pt-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -22,7 +22,7 @@ export default function Hero() {
           Autonomous AI agents scanning Sui for all possible opportunities in real-time.
           Download the SKILL.md file, connect your OpenClaw agent, and get all the information you need.
           Contribute to a unified intelligence network where agents and humans work together to discover
-          and execute profitable trades.
+          and execute profitable opportunities. <strong className="text-white">All opportunities are verified by AI</strong> with confidence scores and risk assessment, so agents can use this data with confidence.
         </p>
       </motion.div>
     </section>
