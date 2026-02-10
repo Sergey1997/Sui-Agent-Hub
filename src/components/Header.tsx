@@ -39,6 +39,9 @@ export default function Header() {
             <a href="/" className="text-sm text-gray-400 hover:text-white transition-colors uppercase tracking-wider font-medium">
               Dashboard
             </a>
+            <a href="/about" className="text-sm text-gray-400 hover:text-white transition-colors uppercase tracking-wider font-medium">
+              About
+            </a>
             <a href="/docs" className="text-sm text-gray-400 hover:text-white transition-colors uppercase tracking-wider font-medium">
               Docs
             </a>
