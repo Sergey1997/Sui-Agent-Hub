@@ -92,7 +92,7 @@ Agents can request AI-powered analysis for any opportunity. We provide detailed 
 | `POST` | `/api/verdict` | Submit your analysis for an opportunity |
 | `POST` | `/api/agent-logs` | Log any action |
 | `GET` | `/api/agent-logs` | Read activity history |
-| `GET` | `/api/wallet` | Wallet info |
+| `GET` | `/api/skill` | Download SKILL.md agent instructions |
 
 ## 🏗️ Architecture
 

@@ -1,59 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Download, Wallet, Copy, ExternalLink } from "lucide-react";
+import Image from "next/image";
+import { Download } from "lucide-react";
+import WalletButton from "./WalletButton";
 
-interface WalletData {
-  address: string;
-  balanceFormatted: string;
-  network: string;
-  explorerUrl: string;
-}
-
-function HeaderWallet() {
-  const [wallet, setWallet] = useState<WalletData | null>(null);
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/wallet")
-      .then((r) => r.json())
-      .then((d) => { if (!d.error) setWallet(d); })
-      .catch(() => {});
-  }, []);
-
-  if (!wallet) return null;
-
-  const shortAddr = `${wallet.address.slice(0, 8)}...${wallet.address.slice(-6)}`;
-
-  const copyAddress = () => {
-    navigator.clipboard.writeText(wallet.address);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  return (
-    <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.1]">
-      <Wallet size={14} className="text-sui-400" />
-      <button onClick={copyAddress} className="flex items-center gap-1.5 hover:text-white transition-colors">
-        <code className="text-xs text-gray-300 font-mono">{shortAddr}</code>
-        <Copy size={12} className={copied ? "text-emerald-400" : "text-gray-500"} />
-      </button>
-      <span className="text-[10px] px-1.5 py-0.5 rounded bg-sui-400/10 text-sui-400 border border-sui-400/25 font-semibold uppercase">
-        {wallet.network}
-      </span>
-      <span className="text-xs font-bold text-sui-400">{wallet.balanceFormatted}</span>
-      <a
-        href={wallet.explorerUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-gray-500 hover:text-white transition-colors"
-      >
-        <ExternalLink size={12} />
-      </a>
-    </div>
-  );
-}
+const network = process.env.NEXT_PUBLIC_SUI_NETWORK || "mainnet";
 
 export default function Header() {
   return (
@@ -67,10 +19,17 @@ export default function Header() {
         <div className="flex items-center justify-between h-18 py-4">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-sui-400/10 border border-sui-400/20 flex items-center justify-center">
-              <span className="text-sui-400 text-xl">🦞</span>
+            <div className="w-10 h-10 rounded-lg bg-sui-400/10 border border-sui-400/20 flex items-center justify-center overflow-hidden relative">
+              <Image 
+                src="/SUH.png" 
+                alt="Sui Opportunities Hunter" 
+                width={40}
+                height={40}
+                className="object-contain"
+                priority
+              />
             </div>
-            <span className="text-lg font-bold text-white">
+            <span className="text-lg font-bold text-white hidden sm:inline">
               Sui Opportunities Hunter
             </span>
           </div>
@@ -85,16 +44,25 @@ export default function Header() {
             </a>
           </nav>
 
-          {/* Wallet + Download */}
+          {/* Network + Wallet + Download */}
           <div className="flex items-center gap-3">
-            <HeaderWallet />
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.1]">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+              </span>
+              <span className="text-[11px] font-semibold text-gray-300 uppercase tracking-wider">
+                {network}
+              </span>
+            </div>
+            <WalletButton />
             <a
               href="/api/skill"
               download="SKILL.md"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sui-400/10 text-sui-400 hover:bg-sui-400/20 transition-colors text-sm font-semibold border border-sui-400/25"
+              className="hidden lg:flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sui-400/10 text-sui-400 hover:bg-sui-400/20 transition-colors text-sm font-semibold border border-sui-400/25"
             >
               <Download size={16} />
-              Download SKILL.md
+              SKILL.md
             </a>
           </div>
         </div>

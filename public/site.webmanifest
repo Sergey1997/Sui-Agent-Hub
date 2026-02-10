@@ -1,0 +1,15 @@
+{
+  "name": "Sui Opportunities Hunter",
+  "short_name": "Sui Opps",
+  "icons": [
+    {
+      "src": "/sui-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "theme_color": "#000B1E",
+  "background_color": "#000B1E",
+  "display": "standalone"
+}

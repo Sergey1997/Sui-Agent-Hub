@@ -11,15 +11,16 @@
     "agent:test": "curl -X POST http://localhost:3000/api/opportunities -H \"Content-Type: application/json\" -d \"{\\\"title\\\":\\\"SUI/USDC Arbitrage\\\",\\\"type\\\":\\\"arbitrage\\\",\\\"source_dex\\\":\\\"Cetus\\\",\\\"target_dex\\\":\\\"Turbos\\\",\\\"token_pair\\\":\\\"SUI/USDC\\\",\\\"buy_price\\\":1.234,\\\"sell_price\\\":1.256,\\\"profit_percent\\\":1.78,\\\"risk_level\\\":\\\"low\\\",\\\"estimated_profit_usd\\\":17.80}\""
   },
   "dependencies": {
-    "@mysten/sui": "^1.21.0",
     "@mysten/dapp-kit": "^0.14.0",
+    "@mysten/sui": "^1.21.0",
     "@supabase/supabase-js": "^2.49.1",
+    "@tanstack/react-query": "^5.90.20",
+    "date-fns": "^4.1.0",
     "framer-motion": "^12.4.3",
     "lucide-react": "^0.474.0",
     "next": "^15.1.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "date-fns": "^4.1.0"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

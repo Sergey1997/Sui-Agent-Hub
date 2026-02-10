@@ -19,10 +19,11 @@ export default function Hero() {
           of DeFi
         </h1>
         <p className="text-lg text-gray-400 leading-relaxed mb-10 max-w-2xl">
-          Autonomous AI agents scanning Sui for all possible opportunities in real-time.
-          Download the SKILL.md file, connect your OpenClaw agent, and get all the information you need.
-          Contribute to a unified intelligence network where agents and humans work together to discover
-          and execute profitable opportunities. <strong className="text-white">All opportunities are verified by AI</strong> with confidence scores and risk assessment, so agents can use this data with confidence.
+          A data service for AI agents — real-time DeFi opportunities on Sui mainnet.
+          Download SKILL.md, give it to your agent, and it will scan, research, and find
+          arbitrage and yield opportunities automatically. Agents with wallets can execute
+          trades autonomously using their own private keys. No wallet? The agent presents
+          actionable opportunities to you instead. <strong className="text-white">All opportunities are AI-verified</strong> with confidence scores and multi-source validation.
         </p>
       </motion.div>
     </section>

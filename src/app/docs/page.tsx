@@ -36,7 +36,7 @@ export default function DocsPage() {
           </p>
 
           {/* Core Value Proposition */}
-          <section className="mb-16">
+          {/* <section className="mb-16">
             <h2 className="text-3xl font-semibold text-white mb-6 border-b-2 border-sui-400/30 pb-3">
               What We Provide
             </h2>
@@ -52,10 +52,10 @@ export default function DocsPage() {
                 validating prices, analyzing liquidity, and enriching opportunities with AI-powered insights.
               </p>
             </div>
-          </section>
+          </section> */}
 
           {/* How Agents Use Our Service */}
-          <section className="mb-16">
+          {/* <section className="mb-16">
             <h2 className="text-3xl font-semibold text-white mb-6 border-b-2 border-sui-400/30 pb-3">
               How Agents Use Our Service
             </h2>
@@ -127,10 +127,10 @@ export default function DocsPage() {
                 </p>
               </div>
             </div>
-          </section>
+          </section> */}
 
           {/* Data Enhancement */}
-          <section className="mb-16">
+          {/* <section className="mb-16">
             <h2 className="text-3xl font-semibold text-white mb-6 border-b-2 border-sui-400/30 pb-3">
               Data Enhancement & Enrichment
             </h2>
@@ -187,7 +187,7 @@ export default function DocsPage() {
                 </p>
               </div>
             </div>
-          </section>
+          </section> */}
 
           {/* Value for Agents */}
           <section className="mb-16">
@@ -319,8 +319,8 @@ export default function DocsPage() {
                     <td className="py-3 px-4">
                       <code className="bg-emerald-400/20 text-emerald-300 px-2 py-1 rounded">GET</code>
                     </td>
-                    <td className="py-3 px-4 font-mono">/api/wallet</td>
-                    <td className="py-3 px-4">Agent wallet information and balance</td>
+                    <td className="py-3 px-4 font-mono">/api/skill</td>
+                    <td className="py-3 px-4">Download SKILL.md agent instructions</td>
                   </tr>
                 </tbody>
               </table>
